@@ -58,19 +58,31 @@ const signUpSchema = new mongoose.Schema({
   }
 });
 
-// signUpSchema.methods.comparePassword = async function (password) {
-//   if (!password) throw new Error('Password is mission,can not compare!');
-//   try {
-//     const result = await bcrypt.compare(password, this.password)
-//     return result;
-//   } catch (error) {
-//     console.log('Error while comparing password!', error.message);
-//   }
-// }
+// create banner model
+const SignUp = mongoose.model("signupinfos", signUpSchema);
 
+// create schema
+const categorySchema = new mongoose.Schema({
+  category_id: {
+    type: Number,
+    required: true
+  },
+  title: {
+    type: String,
+    required: true
+  },
+  url: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
 
 // create banner model
-const SignUp = mongoose.model("signUpInfos", signUpSchema);
+const Category = mongoose.model("categories", categorySchema);
 
 const connectDB = async () => {
   try {
@@ -78,7 +90,7 @@ const connectDB = async () => {
     mongoose.set('strictQuery', true);
     const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASSWORD}@cluster0.ik3p7tj.mongodb.net/?retryWrites=true`
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000
+      serverSelectionTimeoutMS: 5000,
     });
     console.log("db is connected")
   } catch (error) {
@@ -92,7 +104,7 @@ app.post('/banners', async (req, res) => {
         // get data from request body
         const title = req.body.title;
         const subTitle = req.body.subTitle;
-      const url = req.body.url;
+        const url = req.body.url;
         // res.status(201).send({ title, subTitle, url });
 
         const newProduct = new Banner({
@@ -125,9 +137,9 @@ app.post('/users', async (req, res) => {
         const firstName = req.body.firstName;
         const lastName = req.body.lastName;
         const email = req.body.email;
-      const password = req.body.password;
-      const salt = await bcrypt.genSalt(10);
-      const hash = await bcrypt.hash(password, salt);
+        const password = req.body.password;
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(password, salt);
       
         // res.status(201).send({ title, price, description });
 
@@ -137,13 +149,79 @@ app.post('/users', async (req, res) => {
             email,
             password: hash
         })
+      
         const productData = await userInfos.save();
 
         res.status(201).send(productData);
 
   } catch (error) {
-    console.log(error)
-        // res.status(500).send({ message: error.message });
+    // console.log(error)
+        res.status(500).send({ message: error.message });
+    }
+})
+
+app.post("/signIn", async (req, res) => {
+  try {
+    const email = req.body.email;
+    const password = req.body.password;
+    const useremail = await SignUp.findOne({ email: email })
+    if (useremail.password === password) {
+      res.status(201).send("index");
+    } else {
+      res.send("password are not matching");
+    }
+  } catch (error) {
+    res.status(500).send({
+      message: error.message
+  });
+  }
+  
+});
+
+app.post('/category', async (req, res) => {
+  try {
+    const category_id = req.body.category_id;
+    const title = req.body.title;
+    const url = req.body.url;
+    const categoriesData = new SignUp({
+      category_id,
+      title,
+      url
+    })
+    // console.log(categoriesData)
+      const productData = await Category.insertMany([
+        {
+          category_id: 1,
+          title: "Mens new style Winter Casual Outwear Jackets 2022 Arika",
+          url: "http://i.ibb.co/jD3Grtp/image.png"
+      },
+      {
+          category_id: 2,
+          title: "Men's Slim Fit Casual One-Button Suit Coat Jacket Formal Business Blazers",
+          url: "http://i.ibb.co/7V33p8c/image.png"
+      },
+      {
+          category_id: 3,
+          title: "Stylish Denim Jeans Pant For Men",
+          url: "http://i.ibb.co/RP4VgcV/image.png"
+      },
+      {
+          category_id: 4,
+          title: "Stylish Long Sleeve Casual Shirt For Man - Shirt For Men - Shirt",
+          url: "http://i.ibb.co/ZXWzZDR/image.png"
+      },
+      {
+          category_id: 5,
+          title: "Maroon Jacquard Fashion Design Front-Open Sweater for Women",
+          url: "https://i.ibb.co/3vDjgKV/image.png"
+      }
+        ]);
+
+      res.status(201).send(productData);
+      // console.log(productData);
+
+    } catch (error) {
+        res.status(500).send({ message: error.message });
     }
 })
 
@@ -155,6 +233,23 @@ app.get("/banners", async (req, res) => {
         } else {
             res.status(404).send({
                 message: "name not found"
+            });
+        }
+    } catch (error) {
+        res.status(500).send({
+            message: error.message
+        });
+    }
+});
+
+app.get("/category", async (req, res) => {
+    try {
+        const categoriesData = await Category.find();
+        if (categoriesData) {
+            res.status(200).send(categoriesData);
+        } else {
+            res.status(404).send({
+                message: "Products not found"
             });
         }
     } catch (error) {
