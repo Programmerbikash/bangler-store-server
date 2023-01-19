@@ -20,6 +20,8 @@ export const bannerSchema = new mongoose.Schema({
     }
 })
 
+export const Banner = mongoose.model("bannerimgs", bannerSchema);
+
 export const signUpSchema = new mongoose.Schema({
   firstName: {
     type: String,
