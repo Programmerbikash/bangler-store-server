@@ -164,6 +164,7 @@ app.post("/signIn", async (req, res) => {
   try {
     const email = req.body.email;
     const password = req.body.password;
+    console.log(email, password);
     const useremail = await SignUp.findOne({ email: email })
     if (useremail.password === password) {
       res.status(201).send("index");
