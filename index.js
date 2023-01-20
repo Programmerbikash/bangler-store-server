@@ -162,24 +162,19 @@ app.post('/users', async (req, res) => {
 
 app.post("/signIn", async (req, res) => {
   try {
-    try {
-      const email = await SignUp.findOne({ email: req.body.email });
+    const email = await SignUp.findOne({ email: req.body.email });
       // console.log(email);
       if (email) {
         const cmp = await bcrypt.compare(req.body.password, email.password);
         if (cmp) {
           //   ..... further code to maintain authentication like jwt or sessions
-          res.send("Auth Successful");
+          res.json("Auth Successful");
         } else {
           res.send("Wrong email or password.");
         }
       } else {
         res.send("Wrong email or password.");
       }
-    } catch (error) {
-      console.log(error);
-      res.status(500).send("Internal Server error Occured");
-    }
 
     // const email = req.body.email;
     // const password = req.body.password;
@@ -200,9 +195,8 @@ app.post("/signIn", async (req, res) => {
     //   res.send("password are not matching");
     // }
   } catch (error) {
-    res.status(500).send({
-      message: error.message
-  });
+    console.log(error);
+    res.status(500).send("Internal Server error Occured");
   }
   
 });
