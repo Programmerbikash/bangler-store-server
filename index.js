@@ -162,15 +162,43 @@ app.post('/users', async (req, res) => {
 
 app.post("/signIn", async (req, res) => {
   try {
-    const email = req.body.email;
-    const password = req.body.password;
-    console.log(email, password);
-    const useremail = await SignUp.findOne({ email: email })
-    if (useremail.password === password) {
-      res.status(201).send("index");
-    } else {
-      res.send("password are not matching");
+    try {
+      const email = await SignUp.findOne({ email: req.body.email });
+      // console.log(email);
+      if (email) {
+        const cmp = await bcrypt.compare(req.body.password, email.password);
+        if (cmp) {
+          //   ..... further code to maintain authentication like jwt or sessions
+          res.send("Auth Successful");
+        } else {
+          res.send("Wrong email or password.");
+        }
+      } else {
+        res.send("Wrong email or password.");
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(500).send("Internal Server error Occured");
     }
+
+    // const email = req.body.email;
+    // const password = req.body.password;
+    // const salt = await bcrypt.genSalt(10);
+    // const hash = await bcrypt.hash(password, salt);
+    // const useremail = await SignUp.findOne({ email: email })
+    // const result = bcrypt.compareSync(password, hash);
+    //   if (result){
+    //     // console.log(password);
+    //     return res.json("success");
+    //   } else {
+    //     return res.send("Bad request. Password don't match ");
+    //   }
+      
+    // if (useremail.password === password) {
+    //   res.status(201).send("index");
+    // } else {
+    //   res.send("password are not matching");
+    // }
   } catch (error) {
     res.status(500).send({
       message: error.message
